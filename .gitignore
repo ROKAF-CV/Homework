@@ -1,0 +1,8 @@
+*.vs
+*.vcxproj
+*.vcxproj.*
+*.sln
+algorithm/Debug/*
+algorithm/x64/*
+Lenna.jpg
+*.dll
