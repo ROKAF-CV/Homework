@@ -125,6 +125,40 @@ private:
 	}
 };
 
+class Operation {
+public:
+	void addOp(Mat &img, Mat &out, int intensity) {
+		for (int i = 0; i < img.cols; i++) {
+			for (int j = 0; j < img.rows; j++) {
+				out.at<uchar>(j, i) = min(img.at<uchar>(j, i) + intensity, 255);
+			}
+		}
+	}
+	void subOp(Mat &img, Mat &out, int intensity) {
+		for (int i = 0; i < img.cols; i++) {
+			for (int j = 0; j < img.rows; j++) {
+				out.at<uchar>(j, i) = max(img.at<uchar>(j, i) - intensity, 0);
+			}
+		}
+	}
+	void invOp(Mat &img, Mat &out) {
+		for (int i = 0; i < img.cols; i++) {
+			for (int j = 0; j < img.rows; j++) {
+				out.at<uchar>(j, i) = abs(img.at<uchar>(j, i) - 255);
+			}
+		}
+	}
+	void gammaOp(Mat &img, Mat &out, double gamma) {
+		for (int i = 0; i < img.cols; i++) {
+			for (int j = 0; j < img.rows; j++) {
+				out.at<uchar>(j, i) = 255 * pow(img.at<uchar>(j, i) / 255.0, gamma);
+			}
+		}
+	}
+	
+private:
+
+};
 void hist() {
 
 	Mat origin = imread("Lenna.jpg", 0);
@@ -152,8 +186,8 @@ void hist() {
 	waitKey();
 }
 void print(Mat &img) {
-	for (int i = 0; i < 100; i++) {
-		for (int j = 0; j < 500; j++) {
+	for (int i = 0; i < 50; i++) {
+		for (int j = 0; j < 50; j++) {
 			printf("%d ", img.at<uchar>(j, i));
 		}
 		cout << "\n";
@@ -169,10 +203,28 @@ void otsu() {
 	waitKey();
 }
 
-int main() {
+void op() {
+	Operation op;
+	Mat origin = imread("Lenna.jpg", 0);
+	Mat output1(origin.size(), origin.type());
+	Mat output2(origin.size(), origin.type());
+	Mat output3(origin.size(), origin.type());
+	Mat output4(origin.size(), origin.type());
 
+	op.addOp(origin, output1, 50);
+	op.subOp(origin, output2, 50);
+	op.gammaOp(origin, output3,0.5);
+	op.invOp(origin, output4);
+	imshow("before",origin);
+	imshow("add", output1);
+	imshow("sub", output2);
+	imshow("gamma", output3);
+	imshow("inv", output4);
+	waitKey();
+}
+int main() {
 	/*hist();
-	otsu();*/
-	
+	otsu();
+	op();*/
 	return 0;
 }
