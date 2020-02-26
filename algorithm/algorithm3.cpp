@@ -31,11 +31,18 @@ public:
 		}
 	}
 	void gradient_magnitude(const Mat &dy,const Mat &dx, Mat &magnitude) {
-		for (int j = 1; j < dy.rows - 1; j++) {
+		/*for (int j = 1; j < dy.rows - 1; j++) {
 			for (int i = 1; i < dy.cols - 1; i++) {
 				int y = dy.at<uchar>(j, i);
 				int x = dx.at<uchar>(j, i);
 				magnitude.at<uchar>(j, i) = std::max(0.0, std::min(255.0, sqrt(pow(y, 2) + pow(x, 2))));
+			}
+		}*/
+		for (int j = 1; j < dy.rows - 1; j++) {
+			for (int i = 1; i < dy.cols - 1; i++) {
+				int y = dy.at<uchar>(j, i);
+				int x = dx.at<uchar>(j, i);
+				magnitude.at<float>(j, i) = sqrt(pow(y, 2) + pow(x, 2));
 			}
 		}
 	}
@@ -94,7 +101,7 @@ public:
 		Mat dy(out.size(), out.type());
 		Mat dx(out.size(), out.type());
 		Mat edge_direct(out.size(), out.type());
-		Mat edge_mag(out.size(), out.type());
+		Mat edge_mag(out.size(), CV_32F);
 		//gaussian_blur(img, out, 0.5);
 		GaussianBlur(img, out, Size(3, 3), 0.5);
 		sobelOp(out, dy, 'y');
@@ -253,8 +260,10 @@ private:
 				//이웃화소 2개
 				int x1, y1, x2, y2;
 				get_neighbor(direct, j, i, x1, y1, x2, y2);
-				if (mag.at<uchar>(j, i) <= mag.at<uchar>(y1, x1) || mag.at<uchar>(j, i) <= mag.at<uchar>(y2, x2))
-					mag.at<uchar>(j, i) = 0;
+				/*if (mag.at<uchar>(j, i) <= mag.at<uchar>(y1, x1) || mag.at<uchar>(j, i) <= mag.at<uchar>(y2, x2))
+					mag.at<uchar>(j, i) = 0;*/
+				if (mag.at<float>(j, i) <= mag.at<float>(y1, x1) || mag.at<float>(j, i) <= mag.at<float>(y2, x2))
+					mag.at<float>(j, i) = 0;
 			}
 		}
 	}
@@ -295,7 +304,7 @@ private:
 
 		for (int j = 1; j < m - 2; j++) {
 			for (int i = 1; i < n - 2; i++) {
-				if (mag.at<uchar>(j, i) > T_high && !visited[j][i]) follow_edge(out, mag, j, i, T_low);
+				if (mag.at<float>(j, i) > T_high && !visited[j][i]) follow_edge(out, mag, j, i, T_low);
 			}
 		}/*
 		for (int i = 0; i < m; i++) {
@@ -303,7 +312,7 @@ private:
 		}
 		delete []visited;*/
 	}
-
+	
 	void follow_edge(Mat &out,const Mat&mag, int y, int x, const double T_low) {
 		visited[y][x] = true;
 		out.at<uchar>(y, x) = 255;
@@ -312,7 +321,7 @@ private:
 		for (int i = 0; i < 8; i++) {
 			int nx = x + dx[i];
 			int ny = y + dy[i];
-			if (isRange(ny,nx) && mag.at<uchar>(ny, nx) > T_low && !visited[ny][nx]) follow_edge(out, mag, ny, nx, T_low);
+			if (mag.at<float>(ny, nx) > T_low && !visited[ny][nx]) follow_edge(out, mag, ny, nx, T_low);
 		}
 
 	}
@@ -336,7 +345,7 @@ void edge() {
 
 void sobel() {
 	
-	Mat origin = imread("Lenna.png", 0);
+	Mat origin = imread("Lenna.jpg", 0);
 	Edge edge(origin);
 	Mat out(origin.size(), origin.type());
 	Mat out2;
@@ -348,7 +357,7 @@ void sobel() {
 }
 void LOG() {
 	
-	Mat origin = imread("Lenna.png", 0);
+	Mat origin = imread("Lenna.jpg", 0);
 	Edge edge(origin);
 	Mat out(origin.size(), origin.type());
 	edge.zerocrossing_detection(origin, out,0.7,1.0);
@@ -360,27 +369,27 @@ void canny() {
 	
 	Mat origin = imread("example.jpg", 0);
 	Edge edge(origin);
-	Mat out(origin.size(), origin.type());
+	Mat out=Mat::zeros(origin.size(), origin.type());
 	Mat out2(origin.size(), origin.type());
 
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-	edge.canny_edge(origin, out,20.0,60.0);
+	edge.canny_edge(origin, out,60.0,20.0);
 	std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
 	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
 	
 	start = std::chrono::system_clock::now();
-	Canny(origin, out2, 20.0, 60.0);
+	Canny(origin, out2, 20, 60);
 	sec = std::chrono::system_clock::now() - start;
 	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
 	
-	
+	imshow("origin", origin);
 	imshow("out", out);
 	imshow("out2", out2);
 	waitKey();
 }
 
-//int main() {
-//	//LOG();
-//	canny();
-//	return 0;
-//}
+int main() {
+	canny();
+	//sobel();
+	return 0;
+}
