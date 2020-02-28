@@ -2,6 +2,10 @@
 
 #define NUM_MAX 1e9
 
+Corner::Corner()
+{
+}
+
 queue<pair<int, int>> Corner::Moravec(const Mat &img, double thresh) {
 	//for (int j = 3; j < img.rows-3; j++) {
 	//	for (int i = 3; i < img.cols-3; i++) {
@@ -29,29 +33,52 @@ queue<pair<int, int>> Corner::Moravec(const Mat &img, double thresh) {
 	return q;
 }
 
-void Corner::Harris(const Mat &img, Mat &out) {
-	float mask[3][3] = {
-		{0.0116601, 0.0861571, 0.0116601},
-	{0.0861571, 0.63662, 0.0861571},
-	{0.0116601, 0.0861571, 0.0116601}
-	};
+Mat Corner::Harris(const Mat &img) {
 
-	int mask_size = 3;
-	for (int j = 3; j < img.rows - 3; j++) {
-		for (int i = 3; i < img.cols - 3; i++) {
-			float sum = 0.f;
-			for (int l = 0; l < mask_size; l++) { //y방향
-				for (int k = 0; k < mask_size; k++) { //x방향
-					sum += mask[l][k] * pow(img.at<uchar>(l + j, k + i) - img.at<uchar>(l, k), 2);
-				}
-			}
-			out.at<uchar>(j, i) = max(0.f, min(sum, 255.f));
+	Mat dy(img.size(), CV_32F);
+	Mat dx(img.size(), CV_32F);
+	Mat dy_2, dx_2, dydx;
+	Mat dst_dy_2, dst_dx_2, dst_dydx;
+	Mat moment(img.size(),CV_32F); //모멘트 행렬 A
+	float k = 0.04; //특징점일 가능성
+	get_gradient(img, dy, dx,CV_32F);
+	dy_2 = dy.mul(dy);
+	dx_2 = dx.mul(dx);
+	dydx = dy.mul(dx);
+
+	GaussianBlur(dy_2, dst_dy_2, Size(3, 3), 1.0);
+	GaussianBlur(dx_2, dst_dx_2, Size(3, 3), 1.0);
+	GaussianBlur(dydx, dst_dydx, Size(3, 3), 1.0);
+
+	//각 모든 점에 대해 고윳값 구하기
+	for (int j = 0; j < moment.rows; j++) {
+		for (int i = 0; i < moment.cols; i++) {
+			float a11, a12, a21, a22;
+			a11 = dst_dy_2.at<float>(j, i);
+			a12 = a21= dst_dx_2.at<float>(j, i);
+			a22 = dst_dydx.at<float>(j, i);
+			
+			//고윳값 구해서 특징 가능성 값 찾기
+			/*float matrix[] = { a11,a12,a21,a22 };
+			Mat A(Size(2, 2), CV_32F,matrix);
+			Mat eigenval;
+			eigen(A, eigenval);
+			float eigenval1=eigenval.at<float>(0,0),eigenval2=eigenval.at<float>(0,1);
+			float C=eigenval1*eigenval2-k*pow(eigenval1+eigenval2,2);
+			*/
+
+			//특징 가능성 값
+			float C = (a11*a22 - a12 * a21) - k * pow(a11 + a22, 2);
+			moment.at<float>(j, i) = C;
 		}
 	}
+
+	return moment;
 }
 
 
 
+//Moravec
 //특징 가능성 값 찾기
 //cx,cy 중심좌표 
 //x,y S(x,y)
@@ -70,4 +97,18 @@ int Corner::feature(const Mat &img, int x, int y, int cx, int cy) {
 
 bool Corner::isRange(int y, int x) {
 	return y >= 0 && y < 5 && x >= 0 && x < 5;
+}
+
+queue<pair<int, int>> Corner::localization(const Mat &feature, double thresh) {
+	//NMS 거친 특징점 좌표 (x,y)
+	queue<pair<int, int>>q;
+
+	for (int j = 0; j < feature.rows; j++) {
+		for (int i = 0; i < feature.cols; i++) {
+			float c = feature.at<float>(j, i);
+			if (c > thresh && c > feature.at<float>(j + 1, i) && c > feature.at<float>(j, i + 1) && c > feature.at<float>(j - 1, i) && c > feature.at<float>(j, i - 1))
+				q.push({ i,j });
+		}
+	}
+	return q;
 }

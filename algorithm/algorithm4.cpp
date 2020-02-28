@@ -19,7 +19,7 @@ void moravec() {
 
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 	//corner.Moravec(origin, out);
-	corner.Harris(origin, out);
+	corner.Harris(origin);
 	std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
 	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
 
@@ -80,7 +80,7 @@ void cornerHarris_demo()
 	waitKey();
 }
 
-int main() {
+void moravec2() {
 	//moravec();
 	Corner corner;
 
@@ -123,6 +123,32 @@ int main() {
 	imshow("out", src_gray);
 	waitKey();
 	//cornerHarris_demo();
+}
+void harris() {
+	Mat origin = imread("example2.jpg", 0);
+	Mat out(origin.size(), CV_32F);
+	imshow("origin", origin);
+	Corner corner;	
+	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+	out=corner.Harris(origin);
+	std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
+	queue<pair<int, int>> q = corner.localization(out, 0.02);
+	
+	while (!q.empty()) {
+		int x = q.front().second;
+		int y = q.front().first;
+		q.pop();
+		circle(origin, Point(y, x), 5, Scalar(127));
+	}
+
+	
+	imshow("out", origin);
+	waitKey();
+}
+int main() {
+	harris();
+	
 	return 0;
 }
 

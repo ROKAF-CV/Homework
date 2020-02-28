@@ -7,10 +7,11 @@ using namespace std;
 using namespace cv;
 class Edge {
 public:
+	Edge();
 	Edge(Mat img);
 	~Edge();
 	//기본 그레디언트 구하기
-	void get_gradient(const Mat &img, Mat &dy, Mat &dx);
+	void get_gradient(const Mat &img, Mat &dy, Mat &dx,int type);
 	
 	void gradient_magnitude(const Mat &dy, const Mat &dx, Mat &magnitude);
 
@@ -41,7 +42,7 @@ private:
 
 
 	//8-quantization && 3시방향이 0도
-	int quantize_direction(int val);
+	uchar quantize_direction(double val);
 
 	//padding 처리 필요
 	Mat gaussian_mask(float sigma);
@@ -55,7 +56,7 @@ private:
 
 	void NMSalgorithm(Mat &mag, const Mat &direct);
 	void get_neighbor(const Mat &img, int j, int i, int &x1, int &y1, int &x2, int &y2);
-	void thresholding(Mat &out, const Mat &mag, const double T_high, const double T_low);
+	Mat thresholding(const Mat &mag, const double T_high, const double T_low);
 	void follow_edge(Mat &out, const Mat&mag, int y, int x, const double T_low);
 	bool isRange(int j, int i);
 };
