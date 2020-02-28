@@ -21,12 +21,12 @@ public:
 		//	}
 		//}
 		queue<pair<int,int>>q;
-		for (int j = 1; j < img.rows - 1; j++) {
-			for (int i = 1; i < img.cols - 1; i++) {
+		for (int j = 1; j < img.rows-1; j++) {
+			for (int i = 1; i < img.cols-1; i++) {
 				int min_s = NUM_MAX;
 				//S(0,1) S(1,0) S(-1,0) S(0,-1)만 계산하는데, 그 중 제일 작은 값
 				for (int ii = 0; ii < 4; ii++) {
-					min_s = std::min(min_s, feature(img, dx[ii], dy[ii], i, j));
+					min_s = std::min(min_s, feature(img, dy[ii], dx[ii], j, i));
 				}
 				if (min_s > thresh) q.push({ i,j});
 			}
@@ -69,14 +69,14 @@ private:
 	//특징 가능성 값 찾기
 	//cx,cy 중심좌표 
 	//x,y S(x,y)
-	int feature(const Mat &img,int x,int y,int cx,int cy) {
+	int feature(const Mat &img,int v,int u,int cy,int cx) {
 		int S=0;//sum of squared difference
-		for (int i = -1; i < 2; i++) {
-			for (int j = -1; j < 2; j++) {
-				int nx = i + cx;
-				int ny = j + cy;
-				if(isRange(ny+y,nx+x)&& isRange(ny,nx))
-					S += pow(img.at<uchar>(ny+y,nx+x)-img.at<uchar>(ny,nx),2);
+		for (int i = -1; i <=1 ; i++) {
+			for (int j = -1; j <= 1; j++) {
+				int x = i + cx;
+				int y = j + cy;
+				if(isRange(y+v,x+u)&& isRange(y,x))
+					S += pow(img.at<uchar>(y+v,x+u)-img.at<uchar>(y,x),2);
 			}
 		}
 		return S;
@@ -139,20 +139,78 @@ void moravec() {
 	setMouseCallback("out", CallBackFunc, reinterpret_cast<void*>(&out));
 	waitKey();
 }
+Mat src, src_gray;
+int thresh = 200;
+int max_thresh = 255;
+void cornerHarris_demo()
+{
+	int blockSize = 2;
+	int apertureSize = 3;
+	double k = 0.04;
+	Mat dst = Mat::zeros(src.size(), CV_32FC1);
+	cornerHarris(src_gray, dst, blockSize, apertureSize, k);
+	
+	Mat dst_norm, dst_norm_scaled;
+	normalize(dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+	convertScaleAbs(dst_norm, dst_norm_scaled);
+	for (int i = 0; i < dst_norm.rows; i++)
+	{
+		for (int j = 0; j < dst_norm.cols; j++)
+		{
+			if ((int)dst_norm.at<float>(i, j) > thresh)
+			{
+				circle(dst_norm_scaled, Point(j, i), 5, Scalar(0), 2, 8, 0);
+			}
+		}
+	}
+
+	imshow("corners_window", dst_norm_scaled);
+	waitKey();
+}
+
 int main() {
 	//moravec();
 	Corner corner;
 
-	//Mat origin = Mat::ones(Size(5,5), CV_8U);
-	//for (int i = 0; i < 5; i++) {
-	//	origin.at<uchar>(i, 0) = 0;
-	//	origin.at<uchar>(i, 1) = 0;
-	//}
-	////origin.at<uchar>(1, 1) = 1;
-	//origin.at<uchar>(0, 3) = origin.at<uchar>(0, 4) = origin.at<uchar>(1, 4) = 0;
-	//Mat out2(origin.size(), origin.type());
-	Mat origin = imread("Lenna.jpg", 0);
-	queue<pair<int,int>> q=corner.Moravec(origin, 3);
+	Mat origin = Mat::zeros(Size(7,7), CV_8U);
+	for (int i = 1; i <= 5; i++) {
+		origin.at<uchar>(i, 3) = 1;
+	}
+	for (int i = 2; i <= 5; i++) {
+		origin.at<uchar>(i, 4) = 1;
+	}
+	for (int i = 3; i <= 5; i++) {
+		origin.at<uchar>(i, 5) = 1;
+	}
+	for (int i = 4; i <= 5; i++) {
+		origin.at<uchar>(i, 6) = 1;
+	}
+	for (int i = 5; i <= 5; i++) {
+		origin.at<uchar>(i, 3) = 1;
+	}
+	
+	for (int j = 0; j < 7; j++) {
+		for (int i = 0; i < 7; i++) {
+			cout << (int)origin.at<uchar>(j, i) << " ";
+		}
+		cout << "\n";
+	}
+	Mat out2(origin.size(), origin.type());
+	src = imread("example5.jpg");
+	//cout << src.type();
+	cvtColor(src, src_gray, COLOR_BGR2GRAY);
+	queue<pair<int,int>> q=corner.Moravec(origin, 1);
+	cout << q.size();
+	while (!q.empty()) {
+		int x = q.front().second;
+		int y = q.front().first;
+
+		circle(src_gray, Point(y, x), 5, Scalar(0));
+	}
+	cornerHarris_demo();
+	imshow("out", src_gray);
+	waitKey();
+	//cornerHarris_demo();
 	return 0;
 }
 
