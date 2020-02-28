@@ -89,6 +89,7 @@ public:
 				}
 				sum = max(sum, 0);
 				sum = min(sum, 255);
+				//out.at<uchar>(j, i) = sum;
 				out.at<uchar>(j, i) = sum;
 			}
 		}
@@ -345,9 +346,9 @@ void edge() {
 
 void sobel() {
 	
-	Mat origin = imread("Lenna.jpg", 0);
+	Mat origin = imread("Lenna.jpg",0);
 	Edge edge(origin);
-	Mat out(origin.size(), origin.type());
+	Mat out(origin.size(), CV_8U);
 	Mat out2;
 	edge.sobelOp(origin, out, 'y');
 	Sobel(origin, out2, CV_8U, 1, 0);
@@ -389,7 +390,8 @@ void canny() {
 }
 
 int main() {
-	canny();
+	sobel();
+	//canny();
 	//sobel();
 	return 0;
 }
