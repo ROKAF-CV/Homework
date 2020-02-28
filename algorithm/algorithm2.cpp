@@ -2,8 +2,8 @@
 #include "ImageOperation.h"
 void hist() {
 
-	Mat origin = imread("Lenna.jpg", 0);
-	//Mat origin = imread("Lenna.jpg", CV_RGB2GRAY);
+	Mat origin = imread("Lenna.png", 0);
+	//Mat origin = imread("Lenna.png", CV_RGB2GRAY);
 	Histogram myhist;
 	Mat hist;
 	imshow("origin", origin);
@@ -36,7 +36,8 @@ void print(Mat &img) {
 }
 void otsu() {
 
-	Mat origin = imread("Lenna.jpg", 0);
+	Mat origin = imread("Lenna.png", 0);
+
 	Histogram myhist;
 	Mat output = myhist.otsu(origin);
 	imshow("before", origin);
@@ -45,6 +46,7 @@ void otsu() {
 }
 
 void op() {
+
 	ImageOperation op;
 	Mat origin = imread("Lenna.jpg", 0);
 	Mat output1(origin.size(), origin.type());
