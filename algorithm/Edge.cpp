@@ -1,4 +1,4 @@
-#include "Edge.h"
+ï»¿#include "Edge.h"
 
 Edge::Edge()
 {
@@ -19,7 +19,7 @@ Edge::~Edge() {
 	}
 	delete[]visited;
 }
-//±âº» ±×·¹µğ¾ğÆ® ±¸ÇÏ±â
+
 void Edge::get_gradient(const Mat &img, Mat &dy, Mat &dx, int type) {
 	if (type == CV_8U) {
 		for (int j = 1; j < img.rows - 1; j++) {
@@ -105,7 +105,7 @@ Mat Edge::gradient_direction(const Mat &dy, const Mat &dx) {
 	}
 	return direction;
 }
-//¿¡Áö¹æÇâ º¸°í ¼¹À»¶§ ¿ŞÂÊÀÌ ¹à°í ¿À¸¥ÂÊÀÌ ¾îµÎ¿ò
+
 void Edge::edge_direction(const Mat &direction, Mat &out) {
 	for (int j = 1; j < direction.rows - 1; j++) {
 		for (int i = 1; i < direction.cols - 1; i++) {
@@ -113,7 +113,7 @@ void Edge::edge_direction(const Mat &direction, Mat &out) {
 		}
 	}
 }
-//type: y-> y¼Òº§, x -> x¼Òº§
+//type: y-> yë°©í–¥, x -> xë°©í–¥
 //no padding
 void Edge::sobelOp(Mat &img, Mat &out, char type) {
 	int sobel[3][3];
@@ -124,8 +124,8 @@ void Edge::sobelOp(Mat &img, Mat &out, char type) {
 	for (int i = 1; i < img.cols - 1; i++) {
 		for (int j = 1; j < img.rows - 1; j++) {
 			int sum = 0;
-			for (int k = -1; k <= 1; k++) { //x¹æÇâ
-				for (int l = -1; l <= 1; l++) { //y¹æÇâ
+			for (int k = -1; k <= 1; k++) { //xï¿½ï¿½ï¿½ï¿½
+				for (int l = -1; l <= 1; l++) { //yï¿½ï¿½ï¿½ï¿½
 					sum += sobel[l + 1][k + 1] * img.at<float>(j + l, i + k);
 				}
 			}
@@ -147,11 +147,11 @@ void Edge::canny_edge(const Mat &img, Mat&out, double high, double low) {
 	sobelOp(after_gaussian, dy, 'y');
 	sobelOp(after_gaussian, dx, 'x');
 
-	//¼Òº§ ¿¬»êÀÚ¸¦ ÅëÇØ ¿¡Áö ¹æÇâ°ú Å©±â ¾ò±â
+	//ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½
 	edge_direction(gradient_direction(dy, dx), edge_direct);
 	gradient_magnitude(dy, dx, edge_mag);
 
-	//NMS ¾Ë°í¸®ÁòÀ¸·Î °ÅÁş ¿¡Áö Á¦°Å
+	//NMS ï¿½Ë°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	NMSalgorithm(edge_mag, edge_direct);
 	out = thresholding(edge_mag, high, low);
 
@@ -170,8 +170,8 @@ void Edge::gaussian_blur2(const Mat &img, Mat &out, double sigma) {
 	for (int i = mask_size; i <= out.cols - mask_size - 1; i++) {
 		for (int j = mask_size; j < out.rows - mask_size - 1; j++) {
 			float sum = 0.f;
-			for (int k = -mask_size; k <= mask_size; k++) { //x¹æÇâ
-				for (int l = -mask_size; l <= mask_size; l++) { //y¹æÇâ
+			for (int k = -mask_size; k <= mask_size; k++) { //xï¿½ï¿½ï¿½ï¿½
+				for (int l = -mask_size; l <= mask_size; l++) { //yï¿½ï¿½ï¿½ï¿½
 					sum += gaussian.at<float>(l + mask_size, k + mask_size) * img.at<uchar>(j + l, i + k);
 				}
 			}
@@ -187,8 +187,8 @@ void Edge::log_blur(Mat &img, Mat &out, float sigma) {
 	for (int i = mask_size; i <= out.cols - mask_size - 1; i++) {
 		for (int j = mask_size; j < out.rows - mask_size - 1; j++) {
 			float sum = 0.f;
-			for (int k = -mask_size; k <= mask_size; k++) { //x¹æÇâ
-				for (int l = -mask_size; l <= mask_size; l++) { //y¹æÇâ
+			for (int k = -mask_size; k <= mask_size; k++) { //xï¿½ï¿½ï¿½ï¿½
+				for (int l = -mask_size; l <= mask_size; l++) { //yï¿½ï¿½ï¿½ï¿½
 					sum += log_filter.at<float>(l + mask_size, k + mask_size) * img.at<uchar>(j + l, i + k);
 				}
 			}
@@ -241,7 +241,7 @@ void Edge::zerocrossing_detection(Mat &img, Mat &out, float sigma, int thresh) {
 }
 
 
-//8-quantization && 3½Ã¹æÇâÀÌ 0µµ
+//8-quantization
 uchar Edge::quantize_direction(float val) {
 	uchar direction;
 	if (val > 337.5 || val <= 22.5)			direction = 0;
@@ -254,7 +254,7 @@ uchar Edge::quantize_direction(float val) {
 	else direction = 7;
 	return direction;
 }
-//padding Ã³¸® ÇÊ¿ä
+//padding Ã³ï¿½ï¿½ ï¿½Ê¿ï¿½
 Mat Edge::gaussian_mask(float sigma) {
 	int row, col;
 	int sig = cvRound(6 * sigma);
@@ -285,7 +285,7 @@ Mat Edge::LOG_filter(float sigma) {
 void Edge::NMSalgorithm(Mat &mag, const Mat &direct) {
 	for (int j = 1; j < mag.rows - 2; j++) {
 		for (int i = 1; i < mag.cols - 2; i++) {
-			//ÀÌ¿ôÈ­¼Ò 2°³
+			//neighbor 2 pixels
 			int x1, y1, x2, y2;
 			get_neighbor(direct, j, i, x1, y1, x2, y2);
 			float magnitude = mag.at<float>(j, i);
@@ -363,11 +363,11 @@ void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
 	uchar *pData = img.data;
 	//uchar *out_pData = out.data;
 	//////////////////////////////////////////////////////////////////////////
-	// 1Â÷¿ø °¡¿ì½Ã¾È ¸¶½ºÅ© »ı¼º
+	//ê°€ìš°ì‹œì•ˆ ë§ˆìŠ¤í¬
 	//////////////////////////////////////////////////////////////////////////
 
-	int dim = (int)max(3.0, 8 * sigma + 1.0); // 3x3 or sigma°ª¿¡ µû¸¥ ¸¶½ºÅ©Å©±â
-	if (dim % 2 == 0) dim++; // 1Â÷¿ø °¡¿ì½Ã¾È ¸¶½ºÅ©¸¦ È¦¼ö °³·Î ¸¸µç´Ù.
+	int dim = (int)max(3.0, 6 * sigma + 1.0); 
+	if (dim % 2 == 0) dim++; 
 	int dim2 = (int)dim / 2;
 
 	float* pMask = new float[dim];
@@ -378,7 +378,7 @@ void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ÀÓ½Ã ¹öÆÛ ¸Ş¸ğ¸® °ø°£ ÇÒ´ç
+	//ì„ì‹œë²„í¼
 	//////////////////////////////////////////////////////////////////////////
 
 	float** buf = new float*[h];
@@ -389,7 +389,7 @@ void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¼¼·Î ¹æÇâ ÄÁ¹ú·ç¼Ç
+	//ì„¸ë¡œ
 	//////////////////////////////////////////////////////////////////////////
 	float sum1, sum2;
 	for (i = 0; i < w; i++)
@@ -411,7 +411,7 @@ void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
 		}
 
 	//////////////////////////////////////////////////////////////////////////
-	// °¡·Î ¹æÇâ ÄÁ¹ú·ç¼Ç
+	//ê°€ë¡œ
 	//////////////////////////////////////////////////////////////////////////
 
 	for (j = 0; j < h; j++)
@@ -431,7 +431,7 @@ void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
 		}
 
 	//////////////////////////////////////////////////////////////////////////
-	//¸Ş¸ğ¸® °ø°£ ÇØÁ¦
+	//ë©”ëª¨ë¦¬í•´ì œ
 	//////////////////////////////////////////////////////////////////////////
 
 	delete[] pMask;

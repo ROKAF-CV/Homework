@@ -10,8 +10,8 @@ queue<pair<int, int>> Corner::Moravec(const Mat &img, double thresh) {
 	//for (int j = 3; j < img.rows-3; j++) {
 	//	for (int i = 3; i < img.cols-3; i++) {
 	//		int sum = 0;
-	//		for (int l = 0; l < mask_size; l++) { //y¹æÇâ
-	//			for (int k = 0; k < mask_size; k++) { //x¹æÇâ
+	//		for (int l = 0; l < mask_size; l++) { //yï¿½ï¿½ï¿½ï¿½
+	//			for (int k = 0; k < mask_size; k++) { //xï¿½ï¿½ï¿½ï¿½
 	//				sum+=mask[l][k]*pow(img.at<uchar>(l + j, k + i) - img.at<uchar>(l, k), 2);
 	//			}
 	//		}
@@ -22,7 +22,7 @@ queue<pair<int, int>> Corner::Moravec(const Mat &img, double thresh) {
 	for (int j = 1; j < img.rows - 1; j++) {
 		for (int i = 1; i < img.cols - 1; i++) {
 			int min_s = NUM_MAX;
-			//S(0,1) S(1,0) S(-1,0) S(0,-1)¸¸ °è»êÇÏ´Âµ¥, ±× Áß Á¦ÀÏ ÀÛÀº °ª
+			//S(0,1) S(1,0) S(-1,0) S(0,-1)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´Âµï¿½, ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 			for (int ii = 0; ii < 4; ii++) {
 				min_s = std::min(min_s, feature(img, dx[ii], dy[ii], i, j));
 			}
@@ -39,8 +39,8 @@ Mat Corner::Harris(const Mat &img) {
 	Mat dx(img.size(), CV_32F);
 	Mat dy_2, dx_2, dydx;
 	Mat dst_dy_2, dst_dx_2, dst_dydx;
-	Mat moment(img.size(),CV_32F); //¸ð¸àÆ® Çà·Ä A
-	float k = 0.04; //Æ¯Â¡Á¡ÀÏ °¡´É¼º
+	Mat moment(img.size(),CV_32F); //ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ A
+	float k = 0.04; //Æ¯Â¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½É¼ï¿½
 	get_gradient(img, dy, dx,CV_32F);
 	dy_2 = dy.mul(dy);
 	dx_2 = dx.mul(dx);
@@ -50,7 +50,7 @@ Mat Corner::Harris(const Mat &img) {
 	GaussianBlur(dx_2, dst_dx_2, Size(3, 3), 1.0);
 	GaussianBlur(dydx, dst_dydx, Size(3, 3), 1.0);
 
-	//°¢ ¸ðµç Á¡¿¡ ´ëÇØ °íÀµ°ª ±¸ÇÏ±â
+	//ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½
 	for (int j = 0; j < moment.rows; j++) {
 		for (int i = 0; i < moment.cols; i++) {
 			float a11, a12, a21, a22;
@@ -58,7 +58,7 @@ Mat Corner::Harris(const Mat &img) {
 			a12 = a21= dst_dx_2.at<float>(j, i);
 			a22 = dst_dydx.at<float>(j, i);
 			
-			//°íÀµ°ª ±¸ÇØ¼­ Æ¯Â¡ °¡´É¼º °ª Ã£±â
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ Æ¯Â¡ ï¿½ï¿½ï¿½É¼ï¿½ ï¿½ï¿½ Ã£ï¿½ï¿½
 			/*float matrix[] = { a11,a12,a21,a22 };
 			Mat A(Size(2, 2), CV_32F,matrix);
 			Mat eigenval;
@@ -67,7 +67,7 @@ Mat Corner::Harris(const Mat &img) {
 			float C=eigenval1*eigenval2-k*pow(eigenval1+eigenval2,2);
 			*/
 
-			//Æ¯Â¡ °¡´É¼º °ª
+			//Æ¯Â¡ ï¿½ï¿½ï¿½É¼ï¿½ ï¿½ï¿½
 			float C = (a11*a22 - a12 * a21) - k * pow(a11 + a22, 2);
 			moment.at<float>(j, i) = C;
 		}
@@ -79,8 +79,8 @@ Mat Corner::Harris(const Mat &img) {
 
 
 //Moravec
-//Æ¯Â¡ °¡´É¼º °ª Ã£±â
-//cx,cy Áß½ÉÁÂÇ¥ 
+//Æ¯Â¡ ï¿½ï¿½ï¿½É¼ï¿½ ï¿½ï¿½ Ã£ï¿½ï¿½
+//cx,cy ï¿½ß½ï¿½ï¿½ï¿½Ç¥ 
 //x,y S(x,y)
 int Corner::feature(const Mat &img, int x, int y, int cx, int cy) {
 	int S = 0;//sum of squared difference
@@ -100,7 +100,7 @@ bool Corner::isRange(int y, int x) {
 }
 
 queue<pair<int, int>> Corner::localization(const Mat &feature, double thresh) {
-	//NMS °ÅÄ£ Æ¯Â¡Á¡ ÁÂÇ¥ (x,y)
+	//NMS ï¿½ï¿½Ä£ Æ¯Â¡ï¿½ï¿½ ï¿½ï¿½Ç¥ (x,y)
 	queue<pair<int, int>>q;
 
 	for (int j = 0; j < feature.rows; j++) {
