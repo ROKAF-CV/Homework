@@ -120,12 +120,13 @@ void Edge::sobelOp(Mat &img, Mat &out, char type) {
 	if (type == 'y') memcpy(sobel, sobel_y, sizeof(sobel_y));
 	else memcpy(sobel, sobel_x, sizeof(sobel_x));
 
-
+	cout << out.type();
+	cout << out.rows << " " << out.cols;
 	for (int i = 1; i < img.cols - 1; i++) {
 		for (int j = 1; j < img.rows - 1; j++) {
 			int sum = 0;
-			for (int k = -1; k <= 1; k++) { //x����
-				for (int l = -1; l <= 1; l++) { //y����
+			for (int k = -1; k <= 1; k++) { //x방향
+				for (int l = -1; l <= 1; l++) { //y방향
 					sum += sobel[l + 1][k + 1] * img.at<float>(j + l, i + k);
 				}
 			}
@@ -137,21 +138,19 @@ void Edge::sobelOp(Mat &img, Mat &out, char type) {
 }
 void Edge::canny_edge(const Mat &img, Mat&out, double high, double low) {
 	Mat after_gaussian;
-	Mat dy(out.size(), CV_32F);
-	Mat dx(out.size(), CV_32F);
-	Mat edge_direct(out.size(), 0);
-	Mat edge_mag(out.size(), CV_32F);
+	Mat dy(img.size(), CV_32F);
+	Mat dx(img.size(), CV_32F);
+	Mat edge_direct(img.size(), 0);
+	Mat edge_mag(img.size(), CV_32F);
 	//gaussian_blur2(img, out, 0.5);
 	gaussian_blur(img, after_gaussian, 0.5);
 	//GaussianBlur(img, after_gaussian, Size(3, 3), 0.5);
 	sobelOp(after_gaussian, dy, 'y');
 	sobelOp(after_gaussian, dx, 'x');
 
-	//�Һ� �����ڸ� ���� ���� ����� ũ�� ���
 	edge_direction(gradient_direction(dy, dx), edge_direct);
 	gradient_magnitude(dy, dx, edge_mag);
 
-	//NMS �˰��������� ���� ���� ����
 	NMSalgorithm(edge_mag, edge_direct);
 	out = thresholding(edge_mag, high, low);
 

@@ -40,33 +40,18 @@ void LOG() {
 void canny() {
 
 	Mat origin = imread("example.jpg", 0);
-	Mat origin2;
-	for (int j = 50; j < 80; j++) {
-		for (int i = 50; i < 80; i++) {
-			cout << static_cast<int>(origin.at<uchar>(j, i)) << " ";
-		}
-		cout << "\n";
-	}
-
-	origin.convertTo(origin2, CV_32F);
-	for (int j = 50; j < 80; j++) {
-		for (int i = 50; i < 80; i++) {
-			cout << (origin2.at<float>(j, i)) << " ";
-		}
-		cout << "\n";
-	}
 	imshow("origin11", origin);
 	Edge edge(origin);
-	Mat out = Mat::zeros(origin.size(), CV_32F);
+	Mat out;
 	Mat out2(origin.size(), origin.type());
 	
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-	edge.canny_edge(origin2, out, 60.0, 20.0);
+	edge.canny_edge(origin, out, 60.0, 20.0);
 	std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
 	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
 
 	start = std::chrono::system_clock::now();
-	//Canny(origin, out2, 20, 60);
+	Canny(origin, out2, 20, 60);
 	sec = std::chrono::system_clock::now() - start;
 	std::cout << "Test() 함수를 수행하는 걸린 시간(초) : " << sec.count() << " seconds" << std::endl;
 
@@ -75,20 +60,7 @@ void canny() {
 	imshow("out2", out2);
 	waitKey();
 }
-void canny2() {
-	Mat origin = imread("example.jpg", 0);
-	Edge edge(origin);
-	Mat out = Mat::zeros(origin.size(), origin.type());
-	Mat out2(origin.size(), origin.type());
 
-
-	Canny(origin, out2, 20, 60);
-
-	imshow("origin", origin);
-	imshow("out", out);
-	imshow("out2", out2);
-	waitKey();
-}
 int main() {
 	//sobel();
 	canny();
