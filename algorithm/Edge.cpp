@@ -75,17 +75,19 @@ void Edge::gradient_magnitude(const Mat &dy, const Mat &dx, Mat &magnitude) {
 Mat Edge::gradient_direction(const Mat &dy, const Mat &dx) {
 	Mat direction(dy.size(), 0);
 	int type = dy.type();
+	int height = dy.rows - 1;
+	int width = dy.cols - 1;
 	if (type == CV_8U)
-		for (int j = 1; j < dy.rows - 1; j++) {
-			for (int i = 1; i < dy.cols - 1; i++) {
+		for (int j = 1; j < height; j++) {
+			for (int i = 1; i < width; i++) {
 				int y = dy.at<uchar>(j, i);
 				int x = dx.at<uchar>(j, i);
 				direction.at<uchar>(j, i) = quantize_direction(cvFastArctan(y, x));
 			}
 		}
 	else if (type == CV_16S) {
-		for (int j = 1; j < dy.rows - 1; j++) {
-			for (int i = 1; i < dy.cols - 1; i++) {
+		for (int j = 1; j < height; j++) {
+			for (int i = 1; i < width; i++) {
 				int y = dy.at<short>(j, i);
 				int x = dx.at<short>(j, i);
 				direction.at<uchar>(j, i) = quantize_direction(cvFastArctan(y, x));
@@ -93,8 +95,8 @@ Mat Edge::gradient_direction(const Mat &dy, const Mat &dx) {
 		}
 	}
 	else if (type == CV_32F) {
-		for (int j = 1; j < dy.rows - 1; j++) {
-			for (int i = 1; i < dy.cols - 1; i++) {
+		for (int j = 1; j < height; j++) {
+			for (int i = 1; i < width; i++) {
 				int y = dy.at<float>(j, i);
 				int x = dx.at<float>(j, i);
 				direction.at<uchar>(j, i) = quantize_direction(cvFastArctan(y, x));
@@ -124,7 +126,7 @@ void Edge::sobelOp(Mat &img, Mat &out, char type) {
 			int sum = 0;
 			for (int k = -1; k <= 1; k++) { //x방향
 				for (int l = -1; l <= 1; l++) { //y방향
-					sum += sobel[k + 1][l + 1] * img.at<float>(j + l, i + k);
+					sum += sobel[l + 1][k + 1] * img.at<float>(j + l, i + k);
 				}
 			}
 			//sum = max(sum, 0);
@@ -134,29 +136,28 @@ void Edge::sobelOp(Mat &img, Mat &out, char type) {
 	}
 }
 void Edge::canny_edge(const Mat &img, Mat&out, double high, double low) {
-	Mat after_sobel(out.size(), out.type());
-	Mat dy(out.size(), out.type());
-	Mat dx(out.size(), out.type());
+	Mat after_gaussian;
+	Mat dy(out.size(), CV_32F);
+	Mat dx(out.size(), CV_32F);
 	Mat edge_direct(out.size(), 0);
 	Mat edge_mag(out.size(), CV_32F);
-	//gaussian_blur(img, out, 0.5);
-	GaussianBlur(img, after_sobel, Size(3, 3), 0.5);
-	sobelOp(after_sobel, dy, 'y');
-	sobelOp(after_sobel, dx, 'x');
-	
+	//gaussian_blur2(img, out, 0.5);
+	gaussian_blur(img, after_gaussian, 0.5);
+	//GaussianBlur(img, after_gaussian, Size(3, 3), 0.5);
+	sobelOp(after_gaussian, dy, 'y');
+	sobelOp(after_gaussian, dx, 'x');
+
 	//소벨 연산자를 통해 에지 방향과 크기 얻기
 	edge_direction(gradient_direction(dy, dx), edge_direct);
 	gradient_magnitude(dy, dx, edge_mag);
 
 	//NMS 알고리즘으로 거짓 에지 제거
 	NMSalgorithm(edge_mag, edge_direct);
-	cout << out.type()<<"\n";
-	cout << after_sobel.type();
-	out=thresholding(edge_mag, high, low);
-	
+	out = thresholding(edge_mag, high, low);
+
 }
 
-void Edge::gaussian_blur(const Mat &img, Mat &out, double sigma) {
+void Edge::gaussian_blur2(const Mat &img, Mat &out, double sigma) {
 	Mat gaussian = gaussian_mask(sigma);
 	int mask_size = gaussian.rows / 2;
 
@@ -241,7 +242,7 @@ void Edge::zerocrossing_detection(Mat &img, Mat &out, float sigma, int thresh) {
 
 
 //8-quantization && 3시방향이 0도
-uchar Edge::quantize_direction(double val) {
+uchar Edge::quantize_direction(float val) {
 	uchar direction;
 	if (val > 337.5 || val <= 22.5)			direction = 0;
 	else if (val > 22.5 && val <= 67.5)		direction = 1;
@@ -290,28 +291,28 @@ void Edge::NMSalgorithm(Mat &mag, const Mat &direct) {
 			float magnitude = mag.at<float>(j, i);
 			/*if (mag.at<uchar>(j, i) <= mag.at<uchar>(y1, x1) || mag.at<uchar>(j, i) <= mag.at<uchar>(y2, x2))
 				mag.at<uchar>(j, i) = 0;*/
-			if (magnitude <= mag.at<float>(y1, x1) && magnitude <= mag.at<float>(y2, x2))
+			if (magnitude <= mag.at<float>(y1, x1) || magnitude <= mag.at<float>(y2, x2))
 				mag.at<float>(j, i) = 0;
 		}
 	}
 }
 
-void Edge::get_neighbor(const Mat &img, int j, int i, int &x1, int &y1, int &x2, int &y2) {
-	if (img.at<uchar>(j, i) == 0 || img.at<uchar>(j, i) == 4) {
+void Edge::get_neighbor(const Mat &direction, int j, int i, int &x1, int &y1, int &x2, int &y2) {
+	if (direction.at<uchar>(j, i) == 0 || direction.at<uchar>(j, i) == 4) {
 		y1 = j - 1, x1 = i;
 		y2 = j + 1, x2 = i;
 	}
-	if (img.at<uchar>(j, i) == 1 || img.at<uchar>(j, i) == 5) {
+	if (direction.at<uchar>(j, i) == 1 || direction.at<uchar>(j, i) == 5) {
 		y1 = j - 1, x1 = i + 1;
 		y2 = j + 1, x2 = i - 1;
 	}
-	if (img.at<uchar>(j, i) == 2 || img.at<uchar>(j, i) == 6) {
+	if (direction.at<uchar>(j, i) == 2 || direction.at<uchar>(j, i) == 6) {
 		y1 = j, x1 = i - 1;
 		y2 = j, x2 = i + 1;
 	}
-	if (img.at<uchar>(j, i) == 3 || img.at<uchar>(j, i) == 7) {
-		y1 = j + 1, x1 = i - 1;
-		y2 = j - 1, x2 = i + 1;
+	if (direction.at<uchar>(j, i) == 3 || direction.at<uchar>(j, i) == 7) {
+		y1 = j + 1, x1 = i + 1;
+		y2 = j - 1, x2 = i - 1;
 	}
 }
 
@@ -322,12 +323,12 @@ Mat Edge::thresholding(const Mat &mag, const double T_high, const double T_low) 
 		memset(visited[i], 0, sizeof(bool)*n);
 	}
 */
-	Mat	out = Mat::ones(mag.size(), CV_32F);
+	Mat	out = Mat::zeros(mag.size(), 0);
 
 
 	for (int j = 1; j < m - 2; j++) {
 		for (int i = 1; i < n - 2; i++) {
-			if (mag.at<float>(j, i) > T_high || !visited[j][i]) follow_edge(out, mag, j, i, T_low);
+			if (mag.at<float>(j, i) > T_high && !visited[j][i]) follow_edge(out, mag, j, i, T_low);
 		}
 	}/*
 	for (int i = 0; i < m; i++) {
@@ -339,10 +340,9 @@ Mat Edge::thresholding(const Mat &mag, const double T_high, const double T_low) 
 
 void Edge::follow_edge(Mat &out, const Mat&mag, int y, int x, const double T_low) {
 	visited[y][x] = true;
-	
-	out.at<float>(y, x) = 255;
-	int dx[8] = { 0,0,1,-1,1,-1,1,-1 };
-	int dy[8] = { 1,-1,0,0,-1,-1,1,1 };
+
+	out.at<uchar>(y, x) = 255;
+
 	for (int i = 0; i < 8; i++) {
 		int nx = x + dx[i];
 		int ny = y + dy[i];
@@ -353,4 +353,94 @@ void Edge::follow_edge(Mat &out, const Mat&mag, int y, int x, const double T_low
 bool Edge::isRange(int j, int i) {
 	return j >= 0 && j < m && i >= 0 && i < n;
 }
+void Edge::gaussian_blur(const Mat &img, Mat &out, float sigma) {
+	register int i, j, k, x;
 
+	int w = img.cols;
+	int h = img.rows;
+
+	out = Mat(img.size(), CV_32F);
+	uchar *pData = img.data;
+	//uchar *out_pData = out.data;
+	//////////////////////////////////////////////////////////////////////////
+	// 1차원 가우시안 마스크 생성
+	//////////////////////////////////////////////////////////////////////////
+
+	int dim = (int)max(3.0, 8 * sigma + 1.0); // 3x3 or sigma값에 따른 마스크크기
+	if (dim % 2 == 0) dim++; // 1차원 가우시안 마스크를 홀수 개로 만든다.
+	int dim2 = (int)dim / 2;
+
+	float* pMask = new float[dim];
+	for (i = 0; i < dim; i++)
+	{
+		x = i - dim2;
+		pMask[i] = exp(-(x*x) / (2 * sigma*sigma)) / (sqrt(2 * CV_PI)*sigma);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 임시 버퍼 메모리 공간 할당
+	//////////////////////////////////////////////////////////////////////////
+
+	float** buf = new float*[h];
+	for (i = 0; i < h; i++)
+	{
+		buf[i] = new float[w];
+		memset(buf[i], 0, sizeof(float)*w);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 세로 방향 컨벌루션
+	//////////////////////////////////////////////////////////////////////////
+	float sum1, sum2;
+	for (i = 0; i < w; i++)
+		for (j = 0; j < h; j++)
+		{
+			sum1 = sum2 = 0.0;
+
+			for (k = 0; k < dim; k++)
+			{
+				x = k - dim2 + j;
+
+				if (x >= 0 && x < h)
+				{
+					sum1 += pMask[k];
+					sum2 += (pMask[k] * pData[x*w + i]);
+				}
+			}
+			buf[j][i] = (sum2 / sum1);
+		}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 가로 방향 컨벌루션
+	//////////////////////////////////////////////////////////////////////////
+
+	for (j = 0; j < h; j++)
+		for (i = 0; i < w; i++)
+		{
+			sum1 = sum2 = 0.0;
+			for (k = 0; k < dim; k++)
+			{
+				x = k - dim2 + i;
+				if (x >= 0 && x < w)
+				{
+					sum1 += pMask[k];
+					sum2 += (pMask[k] * buf[j][x]);
+				}
+			}
+			out.at<float>(j, i) = limit(sum2 / sum1);
+		}
+
+	//////////////////////////////////////////////////////////////////////////
+	//메모리 공간 해제
+	//////////////////////////////////////////////////////////////////////////
+
+	delete[] pMask;
+	for (i = 0; i < h; i++)	delete[] buf[i];
+	delete[] buf;
+}
+
+float Edge::limit(float a) {
+	if (a > 255)return 255.f;
+	else if (a < 0)return 0.f;
+	else return (uchar)a;
+}
