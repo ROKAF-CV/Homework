@@ -26,8 +26,8 @@ public:
 	void canny_edge(const Mat &img, Mat&out, double high, double low);
 	void gaussian_blur(const Mat &img, Mat &out, float sigma);
 	void gaussian_blur2(const Mat &img, Mat &out, double sigma);
-	void log_blur(Mat &img, Mat &out, float sigma);
-	void zerocrossing_detection(Mat &img, Mat &out, float sigma, int thresh);
+	void log_blur(const Mat &img, Mat &out, float sigma);
+	void zerocrossing_detection(const Mat &img, Mat &out, float sigma, int thresh);
 private:
 	int sobel_y[3][3] = { {-1,-2,-1},
 							{0,0,0},

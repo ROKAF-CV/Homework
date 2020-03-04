@@ -180,37 +180,31 @@ void Edge::gaussian_blur2(const Mat &img, Mat &out, double sigma) {
 		}
 	}
 }
-void Edge::log_blur(Mat &img, Mat &out, float sigma) {
+void Edge::log_blur(const Mat &img, Mat &out, float sigma) {
 	Mat log_filter = LOG_filter(sigma);
 	int mask_size = log_filter.rows / 2;
 	for (int i = mask_size; i <= out.cols - mask_size - 1; i++) {
 		for (int j = mask_size; j < out.rows - mask_size - 1; j++) {
 			float sum = 0.f;
-			for (int k = -mask_size; k <= mask_size; k++) { //x����
-				for (int l = -mask_size; l <= mask_size; l++) { //y����
+			for (int k = -mask_size; k <= mask_size; k++) { //x방향
+				for (int l = -mask_size; l <= mask_size; l++) { //y방향
 					sum += log_filter.at<float>(l + mask_size, k + mask_size) * img.at<uchar>(j + l, i + k);
 				}
 			}
+			/*
 			sum = max(sum, -255.0f);
-			sum = min(sum, 255.0f);
+			sum = min(sum, 255.0f);*/
 			out.at<float>(j, i) = sum;
 		}
 	}
 }
-void Edge::zerocrossing_detection(Mat &img, Mat &out, float sigma, int thresh) {
+void Edge::zerocrossing_detection(const Mat &img, Mat &out, float sigma, int thresh) {
 
 	Mat log_img(img.size(), CV_32F);
 	log_blur(img, log_img, sigma);
-	for (int i = 0; i < 20; i++) {
-		for (int j = 0; j < 20; j++) {
-			cout << log_img.at<float>(j, i) << " ";
-		}
-		cout << "\n";
-	}
-	imshow("asdf", log_img);
-	waitKey();
-	for (int i = 1; i <= log_img.cols - 1; i++) {
-		for (int j = 1; j <= log_img.rows - 1; j++) {
+	
+	for (int i = 1; i < log_img.cols - 1; i++) {
+		for (int j = 1; j < log_img.rows - 1; j++) {
 			int cnt = 0;
 			if (log_img.at<float>(j - 1, i - 1)*log_img.at<float>(j + 1, i + 1) < 0) {
 				if (abs(log_img.at<float>(j - 1, i - 1) - log_img.at<float>(j + 1, i + 1) > thresh)) {
@@ -253,7 +247,7 @@ uchar Edge::quantize_direction(float val) {
 	else direction = 7;
 	return direction;
 }
-//padding ó�� �ʿ�
+//테두리 해결 못함
 Mat Edge::gaussian_mask(float sigma) {
 	int row, col;
 	int sig = cvRound(6 * sigma);
@@ -281,6 +275,8 @@ Mat Edge::LOG_filter(float sigma) {
 	}
 	return out;
 }
+
+
 void Edge::NMSalgorithm(Mat &mag, const Mat &direct) {
 	for (int j = 1; j < mag.rows - 2; j++) {
 		for (int i = 1; i < mag.cols - 2; i++) {

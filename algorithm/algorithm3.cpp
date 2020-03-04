@@ -63,7 +63,7 @@ void canny() {
 
 int main() {
 	//sobel();
-	canny();
-	//canny2();
+	//canny();
+	LOG();
 	return 0;
 }
