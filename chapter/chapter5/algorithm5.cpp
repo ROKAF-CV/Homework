@@ -1,7 +1,7 @@
 #include "Kmeans.h"
 
 void kmeans() {
-	Kmeans seg(4,10);
+	Kmeans seg(3,10);
 	Mat origin = imread("example2.jpg",IMREAD_COLOR);
 	Mat out;
 	seg.get_Kmeans(origin,out);
