@@ -2,8 +2,8 @@
 *.vcxproj
 *.vcxproj.*
 *.sln
-algorithm/Debug/*
-algorithm/x64/*
+chapter/Debug/*
+chapter/x64/*
 Lenna.jpg
 *.jpg
 *.dll
