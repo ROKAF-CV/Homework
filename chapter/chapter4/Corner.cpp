@@ -1,6 +1,5 @@
 #include "Corner.h"
 
-#define NUM_MAX 1e9
 
 Corner::Corner()
 {

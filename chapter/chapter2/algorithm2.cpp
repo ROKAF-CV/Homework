@@ -1,5 +1,6 @@
 #include "Histogram.h"
 #include "ImageOperation.h"
+#include "Otsu.h"
 void hist() {
 
 	Mat origin = imread("Lenna.png", 0);

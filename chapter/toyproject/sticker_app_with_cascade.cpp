@@ -9,7 +9,7 @@ using namespace std;
 using namespace cv;
 
 void detect_face(Mat &img, VideoWriter &output) {
-	Mat sticker = imread("rabbit_ear.png");
+	Mat sticker = imread("images/rabbit_ear2.png");
 	CascadeClassifier classifier("haarcascade_frontalface_default.xml");
 
 	if (classifier.empty()) {
@@ -21,9 +21,9 @@ void detect_face(Mat &img, VideoWriter &output) {
 	classifier.detectMultiScale(img, faces);
 
 	for (Rect rc : faces) {
-		rectangle(img, rc, RED, 2);
+		//rectangle(img, rc, RED, 2);
 		Mat dst;
-		resize(sticker, dst, Size(rc.width, 50), 0, 0, 1);
+		resize(sticker, dst, Size(rc.width, 50), 0, 0, INTER_AREA);
 		Mat imageROI(img, Rect(rc.x, rc.y - dst.rows, dst.cols, dst.rows));
 		Mat mask(dst);
 		dst.copyTo(imageROI, mask);
@@ -62,7 +62,7 @@ int main() {
 		//imshow("frame", frame);
 		if (frame.empty()) break;
 		detect_face(frame, outputVideo);
-		if (waitKey(delay) == 27) break;
+		if (waitKey(50) == 27) break;
 	}
 
 	destroyAllWindows();

@@ -12,13 +12,4 @@ public:
 	void equalize_hist(Mat &img, double normalized_hist[], double equalized_hist[]);
 	
 	Mat equalize_hist(Mat &img);
-
-	//in: image
-	//out:binary image
-	Mat otsu(Mat &img);
-
-
-private:
-	int otsu_objective_function(Mat &img);
-	int argmax(double val[], int t);
 };

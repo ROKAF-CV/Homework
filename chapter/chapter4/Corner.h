@@ -1,11 +1,8 @@
 #pragma once
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/imgproc.hpp>
 #include <algorithm>
-#include "Edge.h"
-using namespace std;
-using namespace cv;
+#include "../chapter3/Edge.h"
+
+#define NUM_MAX 1e9
 class Corner :public Edge{
 public:
 	Corner();
