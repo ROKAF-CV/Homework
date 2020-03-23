@@ -82,8 +82,6 @@ void Kmeans::get_Kmeans(const Mat &img, Mat &out) {
 			before_center = cluster_center[i];
 			
 			after_center /= size_;
-			//cout << i << "번째 이전 클러스터 중심 : " << (int)before_center[0] <<" "<< (int)before_center[1] << " "<<(int)before_center[2]<<"\n";
-			//cout << i << "번째 이후 클러스터 중심 : " << (int)cluster[i][0][0] << " " << (int)cluster[i][0][1] << " " << (int)cluster[i][0][2] << "\n";
 			
 			//기존 군집 내 샘플 평균과 비교하기
 			int cnt = 0;
@@ -108,7 +106,7 @@ void Kmeans::get_Kmeans(const Mat &img, Mat &out) {
 
 	//모든 화소를 각 군집 번호로 바꾸기
 	int pixel[256][256][256] = {};
-	Vec3b *color = new Vec3b(k);
+
 	
 	for (int i = 0; i < k; i++) {
 		int size_ = cluster[i].size();
@@ -134,7 +132,6 @@ void Kmeans::get_Kmeans(const Mat &img, Mat &out) {
 			}
 		}
 	}
-
 }
 
 float Kmeans::get_distance_3b(Vec3b a, Vec3b b) {
